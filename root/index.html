@@ -1,0 +1,60 @@
+<html>
+  <header>
+    <style>
+body {
+  margin: 0;
+}
+@keyframes imageMoving {
+  0% {
+    transform: translate(200%, 0px);
+  }
+  10% {
+    transform: translate(0px, 0px);
+  }
+  90% {
+    transform: translate(0px, 0px);
+  }
+  100% {
+    transform: translate(200%, 0px);
+  }
+}
+#images {
+  display: flex;
+  flex-direction: column-reverse;
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+}
+.transistion {
+  animation: imageMoving 5s;
+  position: relative;
+}
+    </style>
+    <script>
+const onMessage = async ({ data }) => {
+  console.log(data);
+  const img = document.createElement('img');
+  img.src = await fetch(`./screenshot/${data}`)
+    .then(res => res.blob())
+    .then(URL.createObjectURL);
+  img.classList.add('transistion');
+  document.getElementById('images').appendChild(img);
+  img.addEventListener('webkitAnimationEnd', () => img.remove());
+}
+const main = async () => {
+  var ws;
+  while(true){
+    ws = new WebSocket(`ws://${location.host}`);
+    ws.addEventListener('message', onMessage);
+    await new Promise(rs => ws.addEventListener('close', rs, { once: true }));
+    console.log(`Disconnected, retrying in 10 seconds`);
+    await new Promise(rs => setTimeout(rs, 10000));
+  }
+}
+window.addEventListener('DOMContentLoaded', main);
+    </script>
+  </header>
+  <body>
+    <div id="images"></div>
+  </body>
+</html>
